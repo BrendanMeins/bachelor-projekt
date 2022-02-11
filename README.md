@@ -17,7 +17,7 @@ Nun müssen die Abhängigkeiten installiert werden.
 Anschließend kann der Peer gestartet werden durch den Befehl:
 `go run . `
 
-Sollte eine Fehlermeldung erscheinen, weil ein Paket nicht installiert wurde, dann kann das Paket nachträglich nochmal installiert werden.
+Sollte eine Fehlermeldung erscheinen, weil ein Paket nicht richtig installiert wurde, dann kann das Paket nachträglich nochmal installiert werden.
 `go get <name>`
 
 ## Mehrere Peers starten
