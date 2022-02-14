@@ -4,9 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/binary"
 	"fmt"
+	"sort"
+
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/taurusgroup/frost-ed25519/pkg/frost/party"
-	"sort"
 )
 
 /*Da die Frost-Bibliothek mit Integer int16 IDs arbeitet und die libp2p
@@ -19,6 +20,8 @@ var partyIDMap map[int]peer.ID
 var partyIds []int
 var sortedPartySlice party.IDSlice
 
+//Erstellt aus den IDs der Nodes eine Gruppe, die signieren soll
+//alles andere sind helper Funktions.
 func generateParty() {
 	var idMap = make(map[int]peer.ID)
 

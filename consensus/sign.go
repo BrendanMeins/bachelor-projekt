@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"time"
+
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/taurusgroup/frost-ed25519/pkg/frost"
@@ -11,8 +14,6 @@ import (
 	"github.com/taurusgroup/frost-ed25519/pkg/frost/sign"
 	"github.com/taurusgroup/frost-ed25519/pkg/messages"
 	"github.com/taurusgroup/frost-ed25519/pkg/state"
-	"io/ioutil"
-	"time"
 )
 
 const signProtocolId = protocol.ID("/frost/sign/0/1")
@@ -30,6 +31,7 @@ type SignInitMessage struct {
 	Signers party.IDSlice `json:"signers"`
 }
 
+//Funktion zum lesen der Nachrichten des Signaturprotokolls
 func readSign() {
 	for {
 		select {
@@ -55,6 +57,8 @@ func readSign() {
 		}
 	}
 }
+
+//Funktion zum schreiben von Nachrichten, die das Signaturprotokoll betreffen
 func writeSign() {
 	for {
 		select {
@@ -73,6 +77,8 @@ func writeSign() {
 	}
 }
 func signInit(msg SignInitMessage) {
+	//Signers sind die Nodes, die am Signaturprozess aktiv Teilnehmen,
+
 	signers = msg.Signers
 	fmt.Println("Starting Sign Protocol for message: ", msg)
 	fmt.Println("My Public Key: ", keyGenOutput.Public.Shares[party.ID(selfId)])
@@ -83,6 +89,9 @@ func signInit(msg SignInitMessage) {
 	}
 	signOutput = signOut
 	signState = signSt
+	//Goroutinen zum senden und empfangen der Nachrichten, die das
+	//Signaturprotokoll betreffen. Mit den Goroutinen kann über Channels
+	//Kommuniziert werden
 	go readSign()
 	go writeSign()
 	msgsOut := signState.ProcessAll()
@@ -118,6 +127,8 @@ func sends(message messages.Message, id party.ID) {
 	defer stream.Close()
 }
 
+//Handler Funktion für den Libp2p Host, welche die Nachrichten des Signaturprotokolls
+//empfängt und an die Goroutinen weiterleitet
 func handleSignMessage(s network.Stream) {
 	if signState != nil {
 		data, err := ioutil.ReadAll(s)
@@ -136,6 +147,11 @@ func handleSignMessage(s network.Stream) {
 		}
 	}
 }
+
+//Zur initialisierung des Signaturprotokolls wird eine Init Nachricht
+//an das Netzwerk gesendet. Der Libp2p Host empfängt sie in dieser Funktion
+//und startet das Signaturprotokoll. Durch die Nachricht weiß er, was signiert werden
+//soll.
 func handleSignInit(s network.Stream) {
 	data, err := ioutil.ReadAll(s)
 	if err != nil {

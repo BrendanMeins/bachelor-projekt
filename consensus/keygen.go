@@ -3,6 +3,9 @@ package consensus
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"time"
+
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -11,8 +14,6 @@ import (
 	"github.com/taurusgroup/frost-ed25519/pkg/frost/party"
 	"github.com/taurusgroup/frost-ed25519/pkg/messages"
 	"github.com/taurusgroup/frost-ed25519/pkg/state"
-	"io/ioutil"
-	"time"
 )
 
 const KeyGenProtocolId = protocol.ID("/frost/keygen/0/1")
@@ -23,6 +24,8 @@ var keygenOutChannel chan messages.Message
 var keyGenState *state.State
 var keyGenOutput *keygen.Output
 
+//In dieser Funktion werden die Nachrichten des Protokolls
+//zur Schlüsselerzeugung verarbeitet
 func readKeyGen() {
 	for {
 		select {
@@ -45,6 +48,8 @@ func readKeyGen() {
 		}
 	}
 }
+
+//Über diese Funktion werden die Nachrichten an das Netzwerk verschickt
 func writeKeyGen() {
 	for {
 		select {
@@ -64,6 +69,9 @@ func writeKeyGen() {
 	}
 }
 func keyGenInit() {
+	//Zunächst aus den IDs der Nodes die Party IDS erzeugen, nach denen
+	//die Liste der Teilneher sortiert wird. Die Party ist die Menge der Nodes,
+	// die am Signaturprozess teilnehmen könne, also n
 	generateParty()
 	fmt.Println("treshold: ", sortedPartySlice.N()-1)
 	keygenstate, keygenoutput, err := frost.NewKeygenState(party.ID(selfId), sortedPartySlice, sortedPartySlice.N()-1, 0)
@@ -74,7 +82,8 @@ func keyGenInit() {
 
 	keyGenState = keygenstate
 	keyGenOutput = keygenoutput
-
+	//Goroutinen zum lesen und schreiben der Protokoll Nachrichten
+	// Bekommen ihren input über einen Channel
 	go readKeyGen()
 	go writeKeyGen()
 
@@ -116,6 +125,10 @@ func send(message messages.Message, peer peer.ID) {
 	defer stream.Close()
 
 }
+
+//Handler Funktion, die an den Libp2p Host übergeben wird.
+//Alle Nachrichten, die an den Node gesendet werden und die Protokoll
+//ID frost/keygen/0/1 haben, werden hier empfangen
 func handleKeyGenMessage(s network.Stream) {
 	if keyGenState == nil {
 		StartKeyGen()

@@ -5,6 +5,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/BrendanMeins/bachelor-projekt/consensus"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -17,8 +20,6 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/discovery/mdns"
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/multiformats/go-multiaddr"
-	"os"
-	"strings"
 )
 
 type discoveryNotifee struct {
@@ -26,6 +27,8 @@ type discoveryNotifee struct {
 	ctx context.Context
 }
 
+//Handler Funktion, die dafür sorgt, dass neue Peers dem Adressbuchg
+//hinzugefügt werden
 func (m *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
 	if m.h.Network().Connectedness(pi.ID) != network.Connected {
 		fmt.Printf("Found %s!\n", pi.ID.Pretty())
@@ -35,6 +38,8 @@ func (m *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
 
 var Message *string
 
+//In der Main Methode wird der Host von Libp2p aufgesetzt. Und die
+//Schleife gestartet, die den User Input aus dem Terminal erwartet.
 func main() {
 	bootstrapNodeAddress := flag.String("b", "", "Gibt den Node eine Adresse zu einem Bootsrap Node")
 	Message = flag.String("m", "", "Message zum signieren")

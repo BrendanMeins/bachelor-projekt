@@ -2,12 +2,17 @@ package consensus
 
 import (
 	"fmt"
+
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/taurusgroup/frost-ed25519/pkg/messages"
 )
 
 var Host host.Host
 
+//Bekommt den Libp2p host und setzt die Funktionen ein, die die Nachrichten
+//für das FROST Protokoll handeln sollen
+//Über die erstellten Channels kann mit den später gestarteten
+//Goroutinen kommuniziert werden.
 func Init(h host.Host) {
 	Host = h
 	Host.SetStreamHandler(KeyGenProtocolId, handleKeyGenMessage)
@@ -21,10 +26,13 @@ func Init(h host.Host) {
 
 }
 
+//Started Schlüsselerzeugung
 func StartKeyGen() {
 	go keyGenInit()
 }
 
+//Statet Signaturvorgang, überprüft vorher ob ein schlüssel
+//vorliegt
 func StartSign(msg SignInitMessage) {
 
 	if keyGenState == nil {
